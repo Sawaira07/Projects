@@ -4,21 +4,22 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { accelerometer, gyroscope } from 'react-native-sensors';
 
 
-let accelerometerSubscription = accelerometer.subscribe(({ x, y, z }) => {
+/*let accelerometerSubscription = accelerometer.subscribe(({ x, y, z }) => {
   console.log(`Accelerometer: x=${x} y=${y} z=${z}`);
 });
 
 let gyroscopeSubscription = gyroscope.subscribe(({ x, y, z }) => {
   console.log(`Gyroscope: x=${x} y=${y} z=${z}`);
-});
-
+});*/
+ 
 import Home from './src/Home';
 import Signup from './src/Signup';
 import Login from './src/Login';
 import Main from './src/Main';
+import Loc from './src/Loc';
 import Aboutus from './src/Aboutus';
 import Guidebook from './src/Guidebook';
-import CPR from './src/FirstAid/CPR';
+import CPR from './src/FirstAid/CPR'; 
 import Anaphylaxis from './src/FirstAid/Anaphylaxis';
 import Bleeding from './src/FirstAid/Bleeding';
 import Burn from './src/FirstAid/Burn';
@@ -29,7 +30,8 @@ import HeartAttack from './src/FirstAid/HeartAttack';
 import Poisoning from './src/FirstAid/Poisoning';
 import Shock from './src/FirstAid/Shock';
 import Strock from './src/FirstAid/Strock';
-import khan from './src/khan';
+import Numbers from './src/Numbers';
+import detector from './src/detector';
 
 
 const Stack = createNativeStackNavigator();
@@ -42,6 +44,7 @@ function App() {
         <Stack.Screen name="Signup" component={Signup} />
         <Stack.Screen name="Login" component={Login} />
         <Stack.Screen name="Main" component={Main} /> 
+        <Stack.Screen name="Loc" component={Loc} /> 
         <Stack.Screen name="Aboutus" component={Aboutus} />
         <Stack.Screen name="Guidebook" component={Guidebook} />
         <Stack.Screen name="CPR" component={CPR} />
@@ -55,7 +58,8 @@ function App() {
         <Stack.Screen name="Poisoning" component={Poisoning} />
         <Stack.Screen name="Shock" component={Shock} />
         <Stack.Screen name="Strock" component={Strock} />
-        <Stack.Screen name="khan" component={khan} />
+        <Stack.Screen name="Numbers" component={Numbers} />
+        <Stack.Screen name="detector" component={detector} />
       </Stack.Navigator>
     </NavigationContainer>
   );
