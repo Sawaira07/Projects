@@ -1,68 +1,64 @@
-from flask import Flask, jsonify, request
+from flask import Flask, request, jsonify
+import numpy as np
+import pandas as pd
+from sklearn import preprocessing
+from sklearn.model_selection import train_test_split
+from keras.models import Sequential
+from keras.layers import Dense
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app)
 
-users = []
+# Load the dataset
+dataset = pd.read_csv('Resquickdataset.csv')
 
-@app.route('/users', methods=['GET'])
-def get_users():
-    return jsonify([user.__dict__ for user in users])
+# Preprocess the dataset
+label_encoder = preprocessing.LabelEncoder()
+dataset['label'] = label_encoder.fit_transform(dataset['label'])
 
-@app.route('/users', methods=['POST'])
-def add_user():
-    data = request.get_json()
-    firstname = data['firstname']
-    lastname = data['lastname']
-    email = data['email']
-    emergyco1 = data['emergyco1']
-    emergyco2 = data['emergyco2']
-    allergy = data['allergy']
-    password = data['password']
-    confirmpass = data['confirmpass']
+X = dataset.iloc[:, :-1]
+Y = dataset.iloc[:, -1]
 
-    user = User(firstname, lastname, email, emergyco1, emergyco2, allergy, password, confirmpass)
-    users.append(user)
-    return jsonify({"message": "User added successfully"})
+# Split the dataset into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size=0.2, random_state=0)
 
-@app.route('/users/<int:user_id>', methods=['DELETE'])
-def delete_user(user_id):
-    for user in users:
-        if user.id == user_id:
-            users.remove(user)
-            return jsonify({"message": "User deleted successfully"})
-    return jsonify({"message": "User not found"})
+# Train the model
+classifier = Sequential()
+classifier.add(Dense(units=6, kernel_initializer='uniform', activation='relu', input_dim=6))
+classifier.add(Dense(units=6, kernel_initializer='uniform', activation='relu'))
+classifier.add(Dense(units=1, kernel_initializer='uniform', activation='sigmoid'))
+classifier.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
+history = classifier.fit(X_train, y_train, batch_size=10, epochs=200, validation_split=0.2)
 
-@app.route('/users/<int:user_id>', methods=['PUT'])
-def update_user(user_id):
-    data = request.get_json()
-    for user in users:
-        if user.id == user_id:
-            user.firstname = data.get('firstname', user.firstname)
-            user.lastname = data.get('lastname', user.lastname)
-            user.email = data.get('email', user.email)
-            user.emergyco1 = data.get('emergyco1', user.emergyco1)
-            user.emergyco2 = data.get('emergyco2', user.emergyco2)
-            user.allergy = data.get('allergy', user.allergy)
-            user.password = data.get('password', user.password)
-            user.confirmpass = data.get('confirmpass', user.confirmpass)
-            return jsonify({"message": "User updated successfully"})
-    return jsonify({"message": "User not found"})
+# Prediction function
+def predict_data(data):
+    predictions = classifier.predict(data)
+    rounded_predictions = np.round(predictions).astype(int)
+    return rounded_predictions
 
-class User:
-    def __init__(self, firstname, lastname, email, emergyco1, emergyco2, allergy, password, confirmpass):
-        self.id = len(users) + 1
-        self.firstname = firstname
-        self.lastname = lastname
-        self.email = email
-        self.emergyco1 = emergyco1
-        self.emergyco2 = emergyco2
-        self.allergy = allergy
-        self.password = password
-        self.confirmpass = confirmpass
+# API endpoint for training and prediction
+@app.route('/train_predict', methods=['POST'])
+@CORS(app, resources={r"/train_predict": {"origins": "*"}})
+def train_predict():
+    try:
+        # Retrieve data from the request
+        data = request.json  # Assuming the request contains a JSON object with the input data
+
+        # Convert the data to a NumPy array for prediction
+        input_data = np.array(data['input_data'])
+
+        # Make predictions
+        predictions = predict_data(input_data)
+
+        # Prepare the response
+        response = {
+            'predictions': predictions.tolist()
+        }
+
+        return jsonify(response)
+    except Exception as e:
+        return jsonify({'error': str(e)})
 
 if __name__ == '__main__':
     app.run(debug=True, port=2000)
-
-
-
-
